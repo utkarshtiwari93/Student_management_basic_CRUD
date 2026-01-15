@@ -52,14 +52,37 @@ public class UserController {
     }
 
     //Get one student
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getStudent(@PathVariable int id) {
+//    @GetMapping("/{id}")
+//    public ResponseEntity<User> getStudent(@PathVariable int id) {
+//
+//        if (!userDb.containsKey(id)) {
+//           return ResponseEntity.status(HttpStatus.NO_CONTENT).body(userDb.get(id));
+//        }
+//        userDb.get(id);
+//        return ResponseEntity.status(HttpStatus.FOUND).build();
+//    }
 
-        if (!userDb.containsKey(id)) {
-           return ResponseEntity.status(HttpStatus.NO_CONTENT).body(userDb.get(id));
+    @GetMapping("/{userId}")
+    public  ResponseEntity<User> getOrder(@PathVariable("/userId") int id){
+        if (!userDb.containsKey(id)){
+            return ResponseEntity.notFound().build();
         }
-        userDb.get(id);
-        return ResponseEntity.status(HttpStatus.FOUND).build();
+        return ResponseEntity.ok(userDb.get(id));
+    }
+
+    @GetMapping("/{userId}/orders/{orderId}")
+    public  ResponseEntity<User> getUserOrder(@PathVariable(value = "userId" , required = false) int id , @PathVariable int orderId){
+        System.out.println("Order id : " + orderId);
+        if (!userDb.containsKey(id)){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(userDb.get(id));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchUser(@RequestParam(required = false , defaultValue = "utkarsh") String name ){
+        System.out.println(name);
+        return ResponseEntity.ok(new ArrayList<>(userDb.values()));
     }
 
 
