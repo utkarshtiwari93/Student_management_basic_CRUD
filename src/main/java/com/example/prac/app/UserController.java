@@ -13,77 +13,73 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private Map<Integer , User> userDb = new HashMap<>();
+
+    private userService userService = new userService();
+
+
+    public UserController(userService userService) {
+        this.userService = userService;
+    }
 
     //GET the user
     @GetMapping
     public List<User> fetchUser(){
-
-        return new ArrayList<>(userDb.values());
+        return userService.getAllUsers();
     }
 
 //Add the user
     @PostMapping
     public ResponseEntity<User>  createUser (@RequestBody User user ){
-        userDb.putIfAbsent(user.getId() , user);
+       User createdUser = userService.createUser(user);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(user);
+                .body(createdUser);
     }
 //Update the user
     @PutMapping
     public ResponseEntity<User> updateUser(@RequestBody User user){
-        if (userDb.containsKey(user.getId())){
-        userDb.put(user.getId(), user) ;
-        return ResponseEntity.status(HttpStatus.OK).body(user);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+       User updated = userService.updateUser(user);
+       if (updated==null){
+          // throw new IllegalArgumentException("user with id :" +user.getId()+"not allowed");
+          return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+       }
+        return ResponseEntity.ok(updated);
 
     }
 //Delete the user
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable int id ){
-        if (!userDb.containsKey(id)){
+        boolean isDeleted = userService.deleteUser(id);
+        if (!isDeleted){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found the id ");
         }
-        userDb.remove(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body("delet sucess");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("delet sucess");
     }
 
-    //Get one student
-//    @GetMapping("/{id}")
-//    public ResponseEntity<User> getStudent(@PathVariable int id) {
-//
-//        if (!userDb.containsKey(id)) {
-//           return ResponseEntity.status(HttpStatus.NO_CONTENT).body(userDb.get(id));
-//        }
-//        userDb.get(id);
-//        return ResponseEntity.status(HttpStatus.FOUND).build();
-//    }
+
 
     @GetMapping("/{userId}")
-    public  ResponseEntity<User> getOrder(@PathVariable("/userId") int id){
-        if (!userDb.containsKey(id)){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(userDb.get(id));
+    public ResponseEntity<User> getUserById(@PathVariable int userId) {
+        User user = userService.getUserById(userId);
+        if (user == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/{userId}/orders/{orderId}")
     public  ResponseEntity<User> getUserOrder(@PathVariable(value = "userId" , required = false) int id , @PathVariable int orderId){
         System.out.println("Order id : " + orderId);
-        if (!userDb.containsKey(id)){
+        User user= userService.getUserById(id);
+        if (user==null){
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(userDb.get(id));
+        return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUser(@RequestParam(required = false , defaultValue = "utkarsh") String name ){
-        System.out.println(name);
-        return ResponseEntity.ok(new ArrayList<>(userDb.values()));
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<List<User>> searchUser(@RequestParam(required = false , defaultValue = "utkarsh") String name ){
+//        System.out.println(name);
+//        return ResponseEntity.ok(new ArrayList<>(userDb.values()));
+//    }
 
 
 }
