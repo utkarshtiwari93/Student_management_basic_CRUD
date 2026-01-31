@@ -1,46 +1,51 @@
 package com.example.prac.app;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-//06:38:01
-@Service
-public class userService {
-    private Map<Integer , User> userDb = new HashMap<>();
+import java.util.Optional;
 
-    public User createUser(User user) {
-        System.out.println(user.getEmail());
-        userDb.putIfAbsent(user.getId() , user);
-        return user;
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    // ✅ Correct constructor injection
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
+    // ================= CREATE =================
+    public User createUser(User user) {
+        System.out.println(user.getEmail());
+        return userRepository.save(user); // DB insert
+    }
+
+    // ================= UPDATE =================
     public User updateUser(User user) {
-        if (!userDb.containsKey(user.getId())) {
+        if (!userRepository.existsById((long) user.getId())) {
             return null;
         }
-            userDb.put(user.getId(), user) ;
-            return user;
-        }
+        return userRepository.save(user); // DB update
+    }
 
+    // ================= DELETE =================
     public boolean deleteUser(int id) {
-        if (!userDb.containsKey(id)){
+        if (!userRepository.existsById((long) id)) {
             return false;
         }
-        userDb.remove(id);
+        userRepository.deleteById((long) id);
         return true;
     }
 
+    // ================= READ ALL =================
     public List<User> getAllUsers() {
-        return new ArrayList<>(userDb.values());
+        return userRepository.findAll();
     }
 
+    // ================= READ BY ID =================
     public User getUserById(int id) {
-
-        return userDb.get(id);
+        Optional<User> user = userRepository.findById((long) id);
+        return user.orElse(null);
     }
 }
